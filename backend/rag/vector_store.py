@@ -70,7 +70,22 @@ class VectorStore:
         for start in range(0, len(records), BATCH_SIZE):
             end = min(start + BATCH_SIZE, len(records))
             batch = records[start:end]
-            self._insert_with_retry(batch, start // BATCH_SIZE + 1)
+            try:
+                response = supabase.table("clinical_knowledge").insert(batch).execute()
+                # Log detailed response for debugging
+                if hasattr(response, 'status_code'):
+                    logger.info(f"Supabase insert status: {response.status_code}")
+                if getattr(response, 'error', None):
+                    logger.error(f"Supabase insert error: {response.error}")
+                    # Raise to ensure calling code can mark upload as failed
+                    raise Exception(f"Supabase insert error: {response.error}")
+                if getattr(response, 'data', None) is None:
+                    logger.warning(f"Supabase insert returned no data. Full response: {response}")
+                else:
+                    logger.info(f"Inserted vector batch {start // BATCH_SIZE + 1}, rows: {len(response.data)}")
+            except Exception as e:
+                logger.exception(f"Error inserting vector batch: {e}")
+                raise
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def _insert_with_retry(self, batch, batch_num):
