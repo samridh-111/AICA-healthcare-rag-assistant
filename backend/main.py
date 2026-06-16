@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pathlib import Path
@@ -48,19 +46,12 @@ def health_check():
 def chrome_devtools():
     return {}
 
-frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
-
-if os.path.exists(frontend_dist):
-    assets_dir = os.path.join(frontend_dist, "assets")
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
 @app.get("/")
-def serve_frontend():
-    index_path = os.path.join(frontend_dist, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "Multimodal Clinical Intelligence Platform API is running."}
+def root():
+    return {
+        "status": "ok",
+        "message": "AICA API is running. Open Streamlit on port 8501 for the UI.",
+    }
 
 async def preprocess_and_update_state(patient_id: str, text: str, source_file: str) -> dict:
     from backend.clinical.extraction import extract_clinical_data

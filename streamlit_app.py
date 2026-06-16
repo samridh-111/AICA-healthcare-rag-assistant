@@ -1,116 +1,64 @@
 import streamlit as st
-import requests
+import streamlit.components.v1 as components
 import os
-import sys
+import time
 from pathlib import Path
 
-# Ensure project root is on sys.path so 'backend' package imports work when running Streamlit
-sys.path.append(str(Path(__file__).parent.resolve()))
-
-# Configuration
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
-API_PREFIX = "/api/v1"  # Adjust if needed
-
-st.set_page_config(page_title="Healthcare RAG Assistant", layout="wide")
-
-st.title(":hospital: Healthcare RAG Assistant")
-
-# Sidebar: Patient selection
-patient_id = st.sidebar.text_input("Patient ID", value=os.getenv("DEFAULT_PATIENT", "patient_001"))
-
-# File type selection
-file_type = st.sidebar.selectbox(
-    "Upload Type",
-    ["Document", "Prescription", "Lab Report", "Medical Image", "Audio", "Video"],
+st.set_page_config(
+    page_title="AICA | Personalized Clinical Reasoning",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Mapping to backend endpoints
-endpoint_map = {
-    "Document": "/upload/document",
-    "Prescription": "/upload/prescription",
-    "Lab Report": "/upload/lab-report",
-    "Medical Image": "/upload/image",
-    "Audio": "/upload/audio",
-    "Video": "/upload/video",
-}
+# Nuke every piece of Streamlit chrome: header, footer, sidebar toggle,
+# padding, scrollbars — let our HTML control everything.
+st.markdown("""
+<style>
+  /* Hide all Streamlit UI decorations */
+  [data-testid="stHeader"]         { display: none !important; }
+  [data-testid="stToolbar"]        { display: none !important; }
+  [data-testid="stSidebarNav"]     { display: none !important; }
+  [data-testid="collapsedControl"] { display: none !important; }
+  #MainMenu, footer, header        { display: none !important; }
 
-endpoint = endpoint_map[file_type]
+  /* Kill all page padding/margin so iframe fills the window */
+  .appview-container, .main, .block-container,
+  [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: 100vw !important;
+  }
 
-uploaded_file = st.file_uploader(f"Upload a {file_type.lower()}", type=None)
-if uploaded_file:
-    # Streamlit provides a BytesIO – we need to send as multipart
-    files = {"file": (uploaded_file.name, uploaded_file.getvalue())}
-    params = {"patient_id": patient_id}
-    url = f"{BACKEND_URL}{API_PREFIX}{endpoint}"
-    try:
-        with st.spinner(f"Sending {uploaded_file.name} to backend …"):
-            response = requests.post(url, params=params, files=files)
-        response.raise_for_status()
-        data = response.json()
-        st.success(data.get("message", "File processed successfully"))
-        # Show any additional info
-        if "summary" in data:
-            st.write(data["summary"])  # placeholder for backend specifics
-    except Exception as e:
-        st.error(f"Error communicating with backend: {e}")
+  /* Make the iframe itself full-screen */
+  iframe {
+      border: none;
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+  }
+</style>
+""", unsafe_allow_html=True)
 
-st.markdown("---")
-st.subheader(":speech_balloon: Chat with the assistant")
-query = st.text_area("Enter your clinical question", height=150)
-if st.button("Send"):
-    if not query.strip():
-        st.warning("Please enter a question.")
-    else:
-        chat_url = f"{BACKEND_URL}{API_PREFIX}/chat"
-        payload = {"query": query, "patient_id": patient_id}
-        try:
-            with st.spinner("Waiting for response …"):
-                resp = requests.post(chat_url, json=payload)
-            resp.raise_for_status()
-            result = resp.json()
-            st.write(result.get("response", "No response"))
-            # Optional: display alerts, vitals badge, etc.
-            if result.get("alerts"):
-                st.warning("**Alerts:**")
-                for alert in result["alerts"]:
-                    st.write(f"- {alert}")
-        except Exception as e:
-            st.error(f"Chat error: {e}")
+# Read backend URL from environment; default to localhost for local testing
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+# simple cache buster so HTML/CSS updates show immediately in hosted environments
+_CACHE_BUST = int(time.time())
 
-st.caption("Run this app with `streamlit run streamlit_app.py`. Make sure the FastAPI backend is reachable at the URL defined in `BACKEND_URL`.")
+# debug banner so deployed app shows which BACKEND_URL and cache token it's using
+try:
+    import streamlit as st
+    st.markdown(f"<div style='position:fixed;right:8px;top:8px;z-index:9999;padding:6px 8px;border-radius:6px;background:#fff;border:1px solid #eee;font-size:12px'>BACKEND_URL: {BACKEND_URL} - v:{_CACHE_BUST}</div>", unsafe_allow_html=True)
+except Exception:
+    pass
 
-# Import backend modules (defer LLM/chat import to runtime to avoid import-time failures)
-from backend.rag.vector_store import get_vector_store
-from backend.rag.retriever import retrieve_context
-# from backend.rag.chat import generate_chat_response  # IMPORT DEFERRED
-from backend.rules.sos_rules import check_sos
-from backend.ingestion.download_dataset import download_and_export
-from backend.ingestion.preprocess import preprocess_data
-from PyPDF2 import PdfReader
-from backend.rag.chunker import chunk_document
+html_path = Path(__file__).parent / "frontend" / "streamlit_index.html"
+html_code = html_path.read_text(encoding="utf-8")
+html_code = html_code.replace("BACKEND_URL_PLACEHOLDER", BACKEND_URL)
 
-import importlib
-import asyncio
-
-def safe_generate_chat_response(query: str, context_str: str, patient_context: str = "") -> str:
-    """
-    Safely import and call the chat generation function. Supports async or sync implementations.
-    Returns an error message string if the provider is not available.
-    """
-    try:
-        chat_mod = importlib.import_module("backend.rag.chat")
-    except Exception as e:
-        return f"LLM provider module import failed: {str(e)}"
-
-    gen = getattr(chat_mod, "generate_chat_response", None)
-    if gen is None:
-        return "LLM provider does not expose 'generate_chat_response'"
-
-    try:
-        if asyncio.iscoroutinefunction(gen):
-            # Run async provider in a new event loop
-            return asyncio.run(gen(query, context_str, patient_context))
-        else:
-            return gen(query, context_str, patient_context)
-    except Exception as e:
-        return f"Error calling LLM provider: {str(e)}"
+# Use screen height to fill viewport; scrolling=False because our app
+# manages its own scrolling internally.
+components.html(html_code, height=1080, scrolling=False)

@@ -3,15 +3,27 @@
 # Activate virtual environment
 if [ ! -d "venv" ]; then
     echo "Virtual environment not found. Running setup..."
-    chmod +x setup.sh
-    ./setup.sh
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+else
+    source venv/bin/activate
 fi
 
-source venv/bin/activate
-
-echo " Starting Healthcare RAG Assistant with Streamlit..."
-echo " Open http://localhost:8501 in your browser"
+echo ""
+echo "═══════════════════════════════════════"
+echo "  AICA — Starting Streamlit Frontend  "
+echo "═══════════════════════════════════════"
+echo ""
+echo "  ⚠  Make sure FastAPI backend is running first:"
+echo "     uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+echo ""
+echo "  Open: http://localhost:8501"
 echo ""
 
-# Run Streamlit app
-streamlit run streamlit_app.py --logger.level=info
+BACKEND_URL=${BACKEND_URL:-http://localhost:8000} \
+streamlit run streamlit_app.py \
+    --server.headless true \
+    --server.port 8501 \
+    --theme.base "light" \
+    --logger.level=info

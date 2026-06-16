@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="light" lang="en" style="">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>AICA | Personalized Clinical Reasoning</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#aa312e",
+                        "on-tertiary-container": "#fbfffd",
+                        "surface-tint": "#ac322f",
+                        "on-surface-variant": "#58413f",
+                        "on-tertiary-fixed": "#00201d",
+                        "primary-fixed": "#ffdad6",
+                        "surface-bright": "#fff8f7",
+                        "on-primary-container": "#fffeff",
+                        "secondary-container": "#d4e896",
+                        "surface-container-highest": "#f4dddb",
+                        "surface-container-low": "#fff0ef",
+                        "tertiary-container": "#00847a",
+                        "on-secondary-fixed-variant": "#3d4c09",
+                        "inverse-surface": "#3b2d2c",
+                        "on-surface": "#251917",
+                        "outline": "#8c716e",
+                        "tertiary": "#006961",
+                        "on-primary-fixed-variant": "#8b191b",
+                        "surface-dim": "#ecd5d2",
+                        "primary-container": "#cc4944",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#ffedea",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#161e00",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#410003",
+                        "secondary-fixed-dim": "#bbcf7f",
+                        "primary-fixed-dim": "#ffb3ad",
+                        "surface": "#fff8f7",
+                        "background": "#fff8f7",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#74d7cb",
+                        "on-error": "#ffffff",
+                        "surface-container": "#ffe9e6",
+                        "inverse-primary": "#ffb3ad",
+                        "tertiary-fixed": "#90f4e7",
+                        "surface-variant": "#f4dddb",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#e0bfbc",
+                        "on-background": "#251917",
+                        "secondary": "#546521",
+                        "surface-container-high": "#fae3e0",
+                        "on-tertiary-fixed-variant": "#00504a",
+                        "on-secondary-container": "#586925",
+                        "secondary-fixed": "#d7eb98"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "container-max": "1440px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "margin-desktop": "40px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "lg": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Newsreader"],
+                        "label-md": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "headline-lg-mobile": ["Newsreader"],
+                        "body-md": ["Manrope"],
+                        "label-sm": ["Manrope"],
+                        "headline-lg": ["Newsreader"],
+                        "display-lg": ["Newsreader"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fff8f7; /* Matching surface/background token */
+            overflow-x: hidden;
+        }
+        .bento-card {
+            background: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0px 4px 20px rgba(37, 25, 23, 0.04);
+        }
+        .bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 8px 30px rgba(37, 25, 23, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0bfbc; border-radius: 10px; }
+        
+        /* Message Bubbles */
+        .msg-user {
+            background-color: var(--surface-variant, #f4dddb);
+            color: var(--on-surface-variant, #58413f);
+            border-radius: 1rem;
+            border-top-right-radius: 0;
+            padding: 1rem;
+            max-width: 80%;
+            margin-left: auto;
+            margin-bottom: 1rem;
+        }
+        .msg-ai {
+            background-color: #ffffff;
+            border-left: 4px solid var(--tertiary, #006961);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0px 4px 20px rgba(37, 25, 23, 0.04);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
+
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 bottom-0 flex flex-col justify-between docked h-full w-[280px] bg-surface-container-low border-r border-outline-variant z-50">
+    <div class="p-md">
+        <!-- Brand Logo Area -->
+        <div class="mb-lg">
+            <h1 class="font-headline-md text-headline-md font-bold text-primary">AICA</h1>
+            <p class="font-label-sm text-label-sm tracking-widest text-outline uppercase">INSTITUTIONAL PORTAL</p>
+        </div>
+        <!-- CTA -->
+        <button id="new-analysis-btn" class="w-full flex items-center justify-center gap-base py-3 px-4 mb-lg bg-primary text-on-primary rounded-xl font-label-md transition-all hover:brightness-110 active:scale-95">
+            <span class="material-symbols-outlined" data-icon="add">add</span>
+            New Analysis
+        </button>
+        <!-- Navigation Links -->
+        <nav class="space-y-1">
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg group" href="#">
+                <span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="person_search">person_search</span>
+                <span class="font-label-md">Patient Profile</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg group" href="#">
+                <span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="analytics">analytics</span>
+                <span class="font-label-md">Risk Assessment</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg group" href="#">
+                <span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="timeline">timeline</span>
+                <span class="font-label-md">Clinical Timeline</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg group" href="#">
+                <span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="settings">settings</span>
+                <span class="font-label-md">Settings</span>
+            </a>
+        </nav>
+    </div>
+    <!-- Footer Tabs -->
+    <div class="p-md border-t border-outline-variant">
+        <nav class="space-y-1">
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+                <span class="material-symbols-outlined" data-icon="help">help</span>
+                <span class="font-label-md">Support</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant py-3 px-4 hover:bg-surface-container-highest transition-colors rounded-lg" href="#">
+                <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                <span class="font-label-md">Account</span>
+            </a>
+        </nav>
+    </div>
+</aside>
+
+<!-- TOP NAVBAR -->
+<header class="fixed top-0 right-0 h-16 ml-[280px] w-[calc(100%-280px)] bg-surface flex justify-between items-center px-md border-b border-outline-variant z-40">
+    <div class="flex items-center gap-lg">
+        <nav class="hidden md:flex gap-md items-center" id="top-nav">
+            <a class="nav-link text-primary border-b-2 border-primary font-bold pb-1 font-label-md cursor-pointer" data-target="Clinical Chat">Clinical Chat</a>
+            <a class="nav-link text-on-surface-variant font-medium hover:text-primary transition-colors font-label-md cursor-pointer" data-target="Document">Documents</a>
+            <a class="nav-link text-on-surface-variant font-medium hover:text-primary transition-colors font-label-md cursor-pointer" data-target="Medical Image">Medical Images</a>
+            <a class="nav-link text-on-surface-variant font-medium hover:text-primary transition-colors font-label-md cursor-pointer" data-target="Lab Report">Lab Results</a>
+        </nav>
+    </div>
+    <div class="flex items-center gap-md">
+        <button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+        <button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="account_circle">account_circle</button>
+    </div>
+</header>
+
+<!-- MAIN CONTENT CANVAS -->
+<main class="ml-[280px] pt-20 pb-32 min-h-screen">
+    <div class="max-w-[1440px] mx-auto p-md lg:p-lg">
+        <!-- Welcome / Hero Section -->
+        <section class="mb-lg">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-base">
+                <div>
+                    <span class="font-label-md text-primary font-bold tracking-widest uppercase">Clinical Intelligence</span>
+                    <h2 class="font-headline-lg text-headline-lg font-bold">Patient <span id="current-patient-id">patient_001</span></h2>
+                </div>
+                <div class="flex items-center gap-sm">
+                    <span id="vitals-badge" class="flex items-center gap-xs px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-sm">
+                        <span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+                        Stable Vitals
+                    </span>
+                    <span id="update-badge" class="flex items-center gap-xs px-3 py-1 bg-surface-container-highest text-on-surface-variant rounded-full font-label-sm">
+                        <span class="material-symbols-outlined text-[16px]" data-icon="update">update</span>
+                        Last updated 2m ago
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- BENTO GRID LAYOUT -->
+        <div class="grid grid-cols-12 gap-gutter">
+            <!-- AI Assistant Interaction (Large) -->
+            <div class="col-span-12 lg:col-span-8 flex flex-col gap-gutter" id="chat-container">
+                <!-- Initial AI Insight Card -->
+                <div class="msg-ai">
+                    <div class="flex items-start gap-md">
+                        <div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container flex-shrink-0">
+                            <span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+                        </div>
+                        <div>
+                            <h3 class="font-label-md text-tertiary uppercase font-bold mb-xs">System Initialization</h3>
+                            <p class="font-headline-md text-headline-md leading-relaxed text-on-surface">Hello! I am your AI Healthcare Assistant. I've reviewed the recent uploads. How can I help you today?</p>
+                            <div class="mt-md p-md bg-surface-container-low rounded-lg border border-outline-variant">
+                                <p class="font-body-md text-on-surface-variant italic">Please remember I am an AI, not a doctor. Always consult a healthcare professional for medical advice or diagnostic confirmation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat messages will be appended here dynamically -->
+
+            </div>
+
+            <!-- Active Alerts & Sidebar Reasoning (Narrow) -->
+            <div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+                <!-- Critical Reasoning Panel -->
+                <div class="bento-card rounded-xl overflow-hidden border border-outline-variant">
+                    <div class="p-md bg-surface-container-high flex justify-between items-center">
+                        <h3 class="font-label-md font-bold text-on-surface uppercase tracking-wide">Active Clinical Reasoning</h3>
+                        <span class="material-symbols-outlined text-primary" data-icon="emergency">emergency</span>
+                    </div>
+                    <div class="p-md space-y-md" id="alerts-container">
+                        <!-- Dynamic alerts will appear here -->
+                        <p class="text-sm text-on-surface-variant italic" id="no-alerts-msg">No critical alerts currently detected.</p>
+                        
+                        <div class="pt-md border-t border-outline-variant mt-4">
+                            <h4 class="font-label-sm text-outline font-bold mb-sm">REASONING LINKS</h4>
+                            <div class="space-y-sm">
+                                <div class="flex items-center justify-between text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
+                                    <span class="text-body-md">Clinical Timeline Analysis</span>
+                                    <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+                                </div>
+                                <div class="flex items-center justify-between text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
+                                    <span class="text-body-md">Risk Factor Correlation</span>
+                                    <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- FLOATING INPUT AREA -->
+<div class="fixed bottom-0 right-0 ml-[280px] w-[calc(100%-280px)] p-md bg-gradient-to-t from-background via-background/90 to-transparent z-40">
+    <div class="max-w-[900px] mx-auto bg-white border border-outline-variant shadow-xl rounded-2xl p-base flex items-center gap-md">
+        
+        <!-- Hidden file input -->
+        <input type="file" id="file-upload" class="hidden" />
+        
+        <button id="attach-btn" class="w-10 h-10 flex items-center justify-center text-outline hover:text-primary transition-colors relative" title="Upload active tab type">
+            <span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+        </button>
+        
+        <textarea id="chat-input" class="flex-grow bg-transparent border-none focus:ring-0 text-body-md py-2 resize-none max-h-32 custom-scrollbar" placeholder="Ask a health-related question... (e.g., 'What are the symptoms of asthma?')" rows="1"></textarea>
+        
+        <button id="send-btn" class="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined" data-icon="arrow_upward">arrow_upward</span>
+        </button>
+    </div>
+    
+    <!-- Upload Status Display -->
+    <div id="upload-status" class="max-w-[900px] mx-auto mt-2 text-center text-sm font-medium text-primary hidden">
+        Uploading...
+    </div>
+
+    <p class="text-center text-[10px] font-label-sm text-outline mt-sm tracking-widest uppercase">
+        HEALTHCARE AI ASSISTANT CAN MAKE MISTAKES. VERIFY IMPORTANT INFORMATION.
+    </p>
+</div>
+
+<!-- API Integration Script -->
+<script>
+    // Config injected by Python backend
+    const BACKEND_URL = "BACKEND_URL_PLACEHOLDER";
+    let currentPatientId = "patient_001";
+    let activeUploadType = "Document"; // Default selected in top nav
+
+    const endpointMap = {
+        "Document": "/api/v1/upload/document",
+        "Prescription": "/api/v1/upload/prescription",
+        "Lab Report": "/api/v1/upload/lab-report",
+        "Medical Image": "/api/v1/upload/image",
+        "Audio": "/api/v1/upload/audio",
+        "Video": "/api/v1/upload/video"
+    };
+
+    // UI Elements
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatContainer = document.getElementById('chat-container');
+    const attachBtn = document.getElementById('attach-btn');
+    const fileUpload = document.getElementById('file-upload');
+    const uploadStatus = document.getElementById('upload-status');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const alertsContainer = document.getElementById('alerts-container');
+    const noAlertsMsg = document.getElementById('no-alerts-msg');
+
+    // Auto-resize textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Handle Top Nav Selection
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            navLinks.forEach(l => {
+                l.classList.remove('text-primary', 'border-b-2', 'border-primary', 'pb-1');
+                l.classList.add('text-on-surface-variant');
+            });
+            const el = e.target;
+            el.classList.remove('text-on-surface-variant');
+            el.classList.add('text-primary', 'border-b-2', 'border-primary', 'pb-1');
+            
+            const targetType = el.getAttribute('data-target');
+            if(targetType && endpointMap[targetType]) {
+                activeUploadType = targetType;
+                chatInput.placeholder = `Upload ${targetType}s using the attachment icon, or ask a question...`;
+            } else {
+                activeUploadType = "Document";
+                chatInput.placeholder = `Ask a health-related question...`;
+            }
+        });
+    });
+
+    // Handle New Analysis (Reset Chat)
+    document.getElementById('new-analysis-btn').addEventListener('click', () => {
+        const defaultMsg = chatContainer.firstElementChild;
+        chatContainer.innerHTML = '';
+        chatContainer.appendChild(defaultMsg);
+        alertsContainer.innerHTML = '<p class="text-sm text-on-surface-variant italic" id="no-alerts-msg">No critical alerts currently detected.</p>';
+    });
+
+    // Handle File Upload Trigger
+    attachBtn.addEventListener('click', () => {
+        fileUpload.click();
+    });
+
+    fileUpload.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const endpoint = endpointMap[activeUploadType];
+        if (!endpoint) {
+            alert(`Upload type ${activeUploadType} not mapped.`);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        uploadStatus.textContent = `Uploading ${file.name} as ${activeUploadType}...`;
+        uploadStatus.classList.remove('hidden');
+        uploadStatus.className = "max-w-[900px] mx-auto mt-2 text-center text-sm font-medium text-primary";
+
+        try {
+            const res = await fetch(`${BACKEND_URL}${endpoint}?patient_id=${currentPatientId}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                uploadStatus.textContent = `✅ Successfully uploaded: ${file.name}`;
+                uploadStatus.className = "max-w-[900px] mx-auto mt-2 text-center text-sm font-medium text-tertiary";
+                setTimeout(() => uploadStatus.classList.add('hidden'), 3000);
+                
+                // Add a small system message
+                appendMessage(`Uploaded ${activeUploadType}: ${file.name}`, 'user');
+                appendMessage(`I have received the ${activeUploadType.toLowerCase()}. Upload ID: ${data.upload_id || 'tracking started'}. Processing will continue in the background.`, 'ai');
+            } else {
+                throw new Error(data.detail || "Upload failed");
+            }
+        } catch (err) {
+            uploadStatus.textContent = `❌ Error: ${err.message}`;
+            uploadStatus.className = "max-w-[900px] mx-auto mt-2 text-center text-sm font-medium text-error";
+            setTimeout(() => uploadStatus.classList.add('hidden'), 5000);
+        }
+        fileUpload.value = ''; // clear input
+    });
+
+    // Append Message UI
+    function appendMessage(text, sender) {
+        const div = document.createElement('div');
+        if (sender === 'user') {
+            div.className = 'flex justify-end';
+            div.innerHTML = `
+                <div class="msg-user">
+                    <p class="font-body-md text-on-surface-variant">${escapeHtml(text)}</p>
+                </div>
+            `;
+        } else {
+            div.className = 'msg-ai';
+            div.innerHTML = `
+                <div class="flex items-start gap-md">
+                    <div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container flex-shrink-0">
+                        <span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+                    </div>
+                    <div class="w-full">
+                        <p class="font-body-md leading-relaxed text-on-surface markdown-body">${escapeHtml(text).replace(/\\n/g, '<br/>')}</p>
+                    </div>
+                </div>
+            `;
+        }
+        chatContainer.appendChild(div);
+        window.scrollTo(0, document.body.scrollHeight);
+        return div;
+    }
+
+    // Escape HTML
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // Update Alerts UI
+    function updateAlerts(alerts) {
+        if (!alerts || alerts.length === 0) return;
+        const noAlerts = document.getElementById('no-alerts-msg');
+        if (noAlerts) noAlerts.remove();
+
+        alerts.forEach(alert => {
+            const div = document.createElement('div');
+            div.className = 'p-sm bg-error-container rounded-lg border border-error/20 mb-2';
+            div.innerHTML = `
+                <div class="flex items-center gap-base mb-xs">
+                    <span class="material-symbols-outlined text-error text-[20px]" data-icon="warning">warning</span>
+                    <span class="font-label-md font-bold text-on-error-container">Critical Alert</span>
+                </div>
+                <p class="text-label-sm text-on-error-container">${escapeHtml(alert)}</p>
+            `;
+            alertsContainer.insertBefore(div, alertsContainer.firstChild);
+        });
+    }
+
+    // Handle Chat Sending
+    async function sendMessage() {
+        const query = chatInput.value.trim();
+        if (!query) return;
+
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        
+        appendMessage(query, 'user');
+
+        // Loading indicator
+        const loadingDiv = appendMessage("Thinking...", "ai");
+        loadingDiv.querySelector('p').classList.add('animate-pulse', 'text-outline');
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/v1/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: query, patient_id: currentPatientId })
+            });
+            const data = await res.json();
+            
+            loadingDiv.remove();
+            
+            if (res.ok) {
+                appendMessage(data.response, 'ai');
+                if (data.alerts && data.alerts.length > 0) {
+                    updateAlerts(data.alerts);
+                }
+            } else {
+                appendMessage(`Error: ${data.detail}`, 'ai');
+            }
+        } catch (err) {
+            loadingDiv.remove();
+            appendMessage(`Connection error: ${err.message}`, 'ai');
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+</script>
+</body>
+</html>
