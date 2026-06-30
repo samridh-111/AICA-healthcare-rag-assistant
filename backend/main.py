@@ -109,3 +109,6 @@ def log_interaction(patient_id: str, interaction_text: str, symptoms: list, sour
 
 from backend.api.routers import router as api_router
 app.include_router(api_router, prefix="/api/v1")
+
+from backend.api.router_v2 import router as api_router_v2
+app.include_router(api_router_v2, prefix="/api/v2")
