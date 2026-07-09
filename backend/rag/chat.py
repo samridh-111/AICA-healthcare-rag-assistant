@@ -44,7 +44,7 @@ PATIENT STRUCTURED DATA:
 
 async def chat_pipeline(query: str, patient_id: str = "patient_001", uploaded_sources: list = None):
     # 1. Retrieve RAG Context
-    retrieval_data = retrieve_context(query, patient_id=patient_id)
+    retrieval_data = await retrieve_context(query, patient_id=patient_id)
     context_str = retrieval_data["context_string"]
     
     # 2. Extract structured data

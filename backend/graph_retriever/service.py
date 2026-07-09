@@ -16,11 +16,11 @@ class HybridRetrievalService:
         
     async def retrieve(self, query: str, patient_id: str, top_k: int = DEFAULT_TOP_K) -> HybridContext:
         # 1. Detect Intent
-        intent = self.intent_detector.detect_intent(query)
+        intent = await self.intent_detector.detect_intent(query)
         logger.info(f"Detected intent: {intent.intent_type.value} (conf: {intent.confidence})")
         
         # 2. Vector Retrieval (Existing RAG)
-        vector_data = retrieve_context(query, patient_id=patient_id, top_k=top_k)
+        vector_data = await retrieve_context(query, patient_id=patient_id, top_k=top_k)
         vector_chunks = []
         
         # Vector store returns list of dicts or objects
@@ -43,7 +43,7 @@ class HybridRetrievalService:
         graph_chunks = await self.context_builder.build_context(patient_id, intent)
         
         # 4. Merge & Rerank
-        reranked_chunks = self.reranker.rerank(vector_chunks, graph_chunks, query)
+        reranked_chunks = await self.reranker.rerank(vector_chunks, graph_chunks, query)
         
         # 5. Build merged string
         merged_strs = []

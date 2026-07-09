@@ -66,30 +66,53 @@ class RelationalGraphRepository(GraphRepository):
         return RelationshipRepository.delete(edge_id)
         
     async def get_neighbors(self, node_id: str, max_depth: int = 1) -> List[GraphNode]:
+        import heapq
         depth = min(max_depth, GRAPH_MAX_DEPTH)
-        visited = set()
-        queue = [(node_id, 0)]
+        
+        # Priority queue stores (-score, current_id, current_depth)
+        # Start node has score 1.0 (so -1.0)
+        pq = [(-1.0, node_id, 0)]
+        
+        # Track max path score visited for each node
+        visited = {}  # node_id -> max_score
         result_nodes: List[GraphNode] = []
         
-        while queue:
-            current_id, current_depth = queue.pop(0)
-            if current_id in visited or current_depth > depth:
+        while pq:
+            neg_score, current_id, current_depth = heapq.heappop(pq)
+            current_score = -neg_score
+            
+            # If we've visited this node with a better/equal score, skip
+            if current_id in visited and visited[current_id] >= current_score:
                 continue
                 
-            visited.add(current_id)
-            if current_depth > 0:
+            visited[current_id] = current_score
+            
+            # If it's a neighbor (not the root node), retrieve it and store path score
+            if current_id != node_id:
                 entity = EntityRepository.get_by_id(current_id)
                 if entity:
-                    result_nodes.append(self._entity_to_node(entity))
+                    node = self._entity_to_node(entity)
+                    node.properties["path_score"] = current_score
+                    result_nodes.append(node)
                     
             if current_depth < depth:
                 rels = RelationshipRepository.get_by_entity(current_id)
                 for r in rels:
-                    if r.source_entity_id and r.source_entity_id not in visited:
-                        queue.append((r.source_entity_id, current_depth + 1))
-                    if r.target_entity_id and r.target_entity_id not in visited:
-                        queue.append((r.target_entity_id, current_depth + 1))
+                    neighbor_id = r.target_entity_id if r.source_entity_id == current_id else r.source_entity_id
+                    if not neighbor_id:
+                        continue
                         
+                    # Calculate new score = current_score * edge_confidence
+                    edge_conf = getattr(r, "confidence", 1.0)
+                    neighbor_score = current_score * edge_conf
+                    
+                    if neighbor_id in visited and visited[neighbor_id] >= neighbor_score:
+                        continue
+                        
+                    heapq.heappush(pq, (-neighbor_score, neighbor_id, current_depth + 1))
+                    
+        # Relationship Ranking: Sort by path score in descending order
+        result_nodes.sort(key=lambda x: x.properties.get("path_score", 0.0), reverse=True)
         return result_nodes
         
     async def get_patient_graph(self, patient_id: str) -> PatientGraph:
