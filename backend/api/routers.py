@@ -7,7 +7,7 @@ from backend.database.db import DatabaseManager
 from backend.database.models import UploadRecord
 from backend.clinical.patient_state import get_patient_state
 from backend.rules.sos_rules import check_sos
-from backend.main import preprocess_and_update_state, log_interaction
+from backend.utils.workflows import preprocess_and_update_state, log_interaction
 
 router = APIRouter()
 
