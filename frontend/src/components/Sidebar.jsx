@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 
 export default function Sidebar({ onIngest, onUpload, onClear }) {
   const fileInputRef = useRef(null);

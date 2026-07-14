@@ -1,8 +1,23 @@
+import logging
 from backend.rag.vector_store import get_vector_store
-from sentence_transformers import CrossEncoder
 
-# Load cross-encoder
-cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+logger = logging.getLogger(__name__)
+
+# Lazy-loaded singleton — avoids downloading the ~400 MB model at import time
+_cross_encoder = None
+
+def _get_cross_encoder():
+    global _cross_encoder
+    if _cross_encoder is None:
+        try:
+            from sentence_transformers import CrossEncoder
+            logger.info("Loading CrossEncoder model (first use)...")
+            _cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+            logger.info("CrossEncoder loaded.")
+        except Exception as e:
+            logger.warning(f"CrossEncoder unavailable: {e}. Reranking disabled.")
+            _cross_encoder = None
+    return _cross_encoder
 
 def retrieve_context(query: str, patient_id: str = None, top_k: int = 4):
     """
@@ -37,11 +52,16 @@ def retrieve_context(query: str, patient_id: str = None, top_k: int = 4):
         content = item.get("content") or item.get("page_content") or str(item)
         texts.append(content)
 
-    # Rerank using CrossEncoder
-    pairs = [[query, doc] for doc in texts]
-    scores = cross_encoder.predict(pairs)
-    
-    scored_results = sorted(zip(scores, results, texts), key=lambda x: x[0], reverse=True)
+    # Rerank using CrossEncoder (lazy-loaded; skipped if unavailable)
+    cross_encoder = _get_cross_encoder()
+    if cross_encoder is not None:
+        pairs = [[query, doc] for doc in texts]
+        scores = cross_encoder.predict(pairs)
+        scored_results = sorted(zip(scores, results, texts), key=lambda x: x[0], reverse=True)
+    else:
+        # No reranker available — use retrieval order as-is
+        scored_results = list(zip([0.0] * len(results), results, texts))
+
     top_results = scored_results[:top_k]
 
     context_chunks = []

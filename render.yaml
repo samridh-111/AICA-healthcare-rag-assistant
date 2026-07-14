@@ -1,17 +1,26 @@
 services:
   - type: web
     name: healthcare-rag-backend
-    env: python
+    runtime: python
     repo: https://github.com/samridh-111/AICA-healthcare-rag-assistant
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
     envVars:
-      - key: SUPABASE_URL
-        value: "${SUPABASE_URL}"
-      - key: SUPABASE_KEY
-        value: "${SUPABASE_KEY}"
       - key: GROQ_API_KEY
-        value: "${GROQ_API_KEY}"
-      - key: DATABASE_URL
-        value: "${DATABASE_URL}"
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: DEFAULT_PATIENT_ID
+        value: patient_001
+      - key: VECTOR_TABLE_NAME
+        value: clinical_knowledge
+      - key: PYTHON_VERSION
+        value: "3.11"

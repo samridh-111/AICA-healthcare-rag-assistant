@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function ChatMessage({ message }) {
   const { role, content, sosDetails, contextChunks, isLoading } = message;

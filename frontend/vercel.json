@@ -1,4 +1,5 @@
 {
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/api/v1/:path*",
@@ -7,7 +8,10 @@
     {
       "source": "/health",
       "destination": "https://aica-healthcare-rag-assistant.onrender.com/health"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "framework": "vite"
+  ]
 }
